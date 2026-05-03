@@ -1,1 +1,335 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ARIA — Suntek AI HR Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#07101f;
+  --surface:#0d1b2e;
+  --card:#0f2035;
+  --border:rgba(99,179,237,0.15);
+  --cyan:#63b3ed;
+  --cyan2:#4299e1;
+  --teal:#38b2ac;
+  --green:#48bb78;
+  --text:#e2e8f0;
+  --text2:#a0aec0;
+  --text3:#4a5568;
+  --indigo:#667eea;
+  --indigo2:#5a67d8;
+  --radius:14px;
+}
+body{
+  background:var(--bg);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  background-image:
+    radial-gradient(ellipse 70% 40% at 15% 0%,rgba(66,153,225,0.08) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 35% at 85% 100%,rgba(102,126,234,0.06) 0%,transparent 55%);
+}
+ 
+/* ── Outer wrapper ── */
+.wrapper{
+  width:100%;max-width:740px;
+  height:94vh;max-height:860px;
+  display:flex;flex-direction:column;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 0 0 1px rgba(99,179,237,0.04),0 32px 80px rgba(0,0,0,0.6),0 0 60px rgba(66,153,225,0.05);
+}
+ 
+/* ── Header ── */
+.header{
+  padding:18px 22px 14px;
+  background:linear-gradient(180deg,rgba(66,153,225,0.06) 0%,transparent 100%);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.header-row{display:flex;align-items:center;gap:14px;}
+.logo{
+  width:48px;height:48px;border-radius:14px;
+  background:linear-gradient(135deg,#3182ce,#2b6cb0);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+  box-shadow:0 4px 20px rgba(49,130,206,0.35);
+}
+.hinfo{flex:1;}
+.hname{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.2px;}
+.hstatus{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--cyan);margin-top:3px;
+}
+.dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--cyan);
+  animation:blink 2s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.35}}
+.doc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+.tag{
+  display:flex;align-items:center;gap:5px;
+  font-size:11px;padding:3px 10px;border-radius:20px;
+  background:rgba(99,179,237,0.08);
+  border:1px solid rgba(99,179,237,0.2);
+  color:var(--cyan);
+}
+ 
+/* ── Messages ── */
+.msgs{
+  flex:1;overflow-y:auto;
+  padding:20px 18px 10px;
+  scroll-behavior:smooth;
+}
+.msgs::-webkit-scrollbar{width:4px;}
+.msgs::-webkit-scrollbar-thumb{background:rgba(99,179,237,0.2);border-radius:4px;}
+ 
+.msg{
+  display:flex;gap:10px;margin-bottom:18px;
+  animation:slideUp 0.28s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse;}
+ 
+.av{
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;margin-top:2px;
+}
+.av.bot{
+  background:linear-gradient(135deg,#3182ce,#2b6cb0);
+  box-shadow:0 2px 12px rgba(49,130,206,0.35);
+}
+.av.user{
+  background:linear-gradient(135deg,var(--indigo),var(--indigo2));
+  box-shadow:0 2px 12px rgba(102,126,234,0.35);
+}
+ 
+.bubble{
+  max-width:76%;
+  padding:13px 16px;
+  font-size:14px;line-height:1.7;
+  color:var(--text);
+  white-space:pre-wrap;
+}
+.bubble.bot{
+  background:rgba(49,130,206,0.07);
+  border:1px solid rgba(99,179,237,0.15);
+  border-radius:4px 16px 16px 16px;
+}
+.bubble.user{
+  background:rgba(102,126,234,0.1);
+  border:1px solid rgba(102,126,234,0.2);
+  border-radius:16px 4px 16px 16px;
+}
+ 
+/* Typing */
+.typing{display:flex;gap:5px;align-items:center;padding:3px 0;}
+.typing span{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--cyan2);
+  animation:bounce 1.3s infinite;
+}
+.typing span:nth-child(2){animation-delay:.2s;}
+.typing span:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+ 
+/* ── Quick questions ── */
+.quick{padding:0 18px 12px;flex-shrink:0;}
+.qlabel{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;}
+.qlist{display:flex;flex-wrap:wrap;gap:6px;}
+.qbtn{
+  font-size:12px;padding:6px 13px;border-radius:20px;
+  background:rgba(99,179,237,0.05);
+  border:1px solid rgba(99,179,237,0.15);
+  color:var(--text2);cursor:pointer;
+  font-family:'Inter',sans-serif;
+  transition:all .18s;
+}
+.qbtn:hover{background:rgba(99,179,237,0.12);color:var(--cyan);border-color:rgba(99,179,237,0.4);}
+ 
+/* ── Input area ── */
+.input-area{
+  padding:12px 18px 18px;
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+.input-box{
+  display:flex;gap:8px;align-items:flex-end;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(99,179,237,0.2);
+  border-radius:14px;padding:10px 12px;
+  transition:border-color .2s;
+}
+.input-box:focus-within{border-color:rgba(99,179,237,0.45);}
+textarea{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-size:14px;line-height:1.5;
+  font-family:'Inter',sans-serif;resize:none;
+  max-height:100px;overflow-y:auto;padding:0;
+}
+textarea::placeholder{color:var(--text3);}
+.send{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,#3182ce,#2b6cb0);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .2s;
+  box-shadow:0 2px 10px rgba(49,130,206,0.35);
+}
+.send:disabled{background:rgba(99,179,237,0.1);box-shadow:none;cursor:default;}
+.send:not(:disabled):hover{transform:scale(1.06);}
+.fnote{font-size:11px;color:rgba(74,85,104,0.7);text-align:center;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="wrapper">
+ 
+  <!-- Header -->
+  <div class="header">
+    <div class="header-row">
+      <div class="logo">🤖</div>
+      <div class="hinfo">
+        <div class="hname">ARIA — Suntek AI HR Assistant</div>
+        <div class="hstatus"><div class="dot"></div>Online · Powered by your real HR documents</div>
+      </div>
+    </div>
+    <div class="doc-tags">
+      <span class="tag">📋 Onboarding Guide</span>
+      <span class="tag">📅 Leave Policy 2026</span>
+      <span class="tag">🤰 Maternity Benefit Act</span>
+      <span class="tag">🧾 Expense Claims</span>
+    </div>
+  </div>
+ 
+  <!-- Messages -->
+  <div class="msgs" id="msgs"></div>
+ 
+  <!-- Quick Questions -->
+  <div class="quick" id="quick">
+    <div class="qlabel">Quick questions</div>
+    <div class="qlist" id="qlist"></div>
+  </div>
+ 
+  <!-- Input -->
+  <div class="input-area">
+    <div class="input-box">
+      <textarea id="inp" rows="1" placeholder="Ask about leave, payroll, onboarding, expenses..." onkeydown="onKey(event)" oninput="resize(this)"></textarea>
+      <button class="send" id="sendbtn" onclick="send()" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9 22 2Z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="fnote">For sensitive matters → Email khushi@suntek.ai · Press Enter to send</div>
+  </div>
+</div>
+ 
+<script>
+const QUICK = [
+  "How many leaves do I get?",
+  "When is salary credited?",
+  "What is the BYOD policy?",
+  "How to apply for sick leave?",
+  "What is maternity leave?",
+  "Who is my HR contact?",
+  "What to do on Day 1?",
+  "How to submit expense claim?",
+  "Can I carry forward my PL?",
+  "What is paternity leave?",
+];
+ 
+let history = [];
+let busy = false;
+ 
+// Init
+(function(){
+  const ql = document.getElementById("qlist");
+  QUICK.forEach(q => {
+    const b = document.createElement("button");
+    b.className = "qbtn"; b.textContent = q;
+    b.onclick = () => send(q);
+    ql.appendChild(b);
+  });
+  addBot("👋 Hi! I'm ARIA, Suntek AI's HR Assistant.\n\nI've been trained on your actual company documents:\n📄 Employee Onboarding Guide\n📅 Leave Policy 2026\n🤰 Maternity Benefit Act 2017\n🧾 Expense Claim Handbook\n\nAsk me anything about leave, payroll, onboarding, BYOD, expenses, or HR contacts!");
+  document.getElementById("inp").addEventListener("input", function(){
+    document.getElementById("sendbtn").disabled = !this.value.trim() || busy;
+  });
+})();
+ 
+function addBot(text){
+  const c = document.getElementById("msgs");
+  const d = document.createElement("div");
+  d.className = "msg";
+  d.innerHTML = `<div class="av bot">🤖</div><div class="bubble bot">${esc(text)}</div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+ 
+function addUser(text){
+  const c = document.getElementById("msgs");
+  const d = document.createElement("div");
+  d.className = "msg user";
+  d.innerHTML = `<div class="av user">👤</div><div class="bubble user">${esc(text)}</div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+ 
+function showTyping(){
+  const c = document.getElementById("msgs");
+  const d = document.createElement("div");
+  d.className = "msg"; d.id = "typing";
+  d.innerHTML = `<div class="av bot">🤖</div><div class="bubble bot"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+ 
+function hideTyping(){ const t=document.getElementById("typing"); if(t) t.remove(); }
+ 
+function esc(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br/>"); }
+ 
+async function send(text){
+  const el = document.getElementById("inp");
+  const msg = text || el.value.trim();
+  if(!msg || busy) return;
+  el.value = ""; el.style.height = "auto"; busy = true;
+  document.getElementById("sendbtn").disabled = true;
+  document.getElementById("quick").style.display = "none";
+  addUser(msg);
+  showTyping();
+ 
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ message: msg, history })
+    });
+    const data = await res.json();
+    hideTyping();
+ 
+    if(data.error){
+      addBot("⚠️ " + data.error + "\n\nPlease email Khushi Ash at khushi@suntek.ai directly.");
+    } else {
+      history.push({ role:"user", parts:[{text:msg}] });
+      history.push({ role:"model", parts:[{text:data.reply}] });
+      if(history.length > 20) history = history.slice(-20);
+      addBot(data.reply);
+    }
+  } catch(e){
+    hideTyping();
+    addBot("⚠️ Connection issue. Please check your internet and try again.");
+  }
+  busy = false;
+  document.getElementById("sendbtn").disabled = false;
+  el.focus();
+}
+ 
+function onKey(e){ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); } }
+function resize(el){ el.style.height="auto"; el.style.height=Math.min(el.scrollHeight,100)+"px"; }
+</script>
+</body>
+</html>
