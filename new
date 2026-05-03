@@ -1,0 +1,296 @@
+import { useState, useRef, useEffect } from "react";
+
+const HR_SYSTEM_PROMPT = `You are ARIA HR Assistant. Answer HR queries clearly and professionally.`;
+
+const QUICK_QUESTIONS = [
+  "How many leaves do I get?",
+  "When is salary credited?",
+  "BYOD policy?",
+  "How to apply for sick leave?",
+];
+
+function TypingDots() {
+  return (
+    <div style={{ display: "flex", gap: 4 }}>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "#22d3ee",
+            animation: "bounce 1.2s infinite",
+            animationDelay: `${i * 0.2}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Message({ msg }) {
+  const isBot = msg.role === "assistant";
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: isBot ? "flex-start" : "flex-end",
+        marginBottom: 14,
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "70%",
+          padding: "12px 14px",
+          borderRadius: 14,
+          fontSize: 14,
+          lineHeight: 1.6,
+          background: isBot
+            ? "rgba(6,182,212,0.08)"
+            : "rgba(99,102,241,0.12)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          color: "#e2e8f0",
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        {msg.content}
+      </div>
+    </div>
+  );
+}
+
+export default function SuntekHRBot() {
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content:
+        "👋 Hi! I'm ARIA, Suntek AI's HR Assistant.\n\nAsk me anything about leave, payroll, onboarding, or policies.",
+    },
+  ]);
+
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showQuick, setShowQuick] = useState(true);
+
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const sendMessage = async (text) => {
+    const userText = text || input.trim();
+    if (!userText || loading) return;
+
+    setInput("");
+    setShowQuick(false);
+
+    const newMessages = [...messages, { role: "user", content: userText }];
+    setMessages(newMessages);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: newMessages,
+        }),
+      });
+
+      const data = await res.json();
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.reply || "No response" },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "⚠️ Connection issue. Please try again later.",
+        },
+      ]);
+    }
+
+    setLoading(false);
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg,#020617 0%,#0c1a2e 50%,#020617 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+        fontFamily: "DM Sans, sans-serif",
+      }}
+    >
+      <style>{`
+        @keyframes bounce {
+          0%, 60%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-5px); }
+        }
+        textarea:focus { outline: none; }
+      `}</style>
+
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 700,
+          height: "90vh",
+          background: "rgba(2,12,27,0.95)",
+          borderRadius: 20,
+          border: "1px solid rgba(255,255,255,0.08)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        {/* HEADER */}
+        <div
+          style={{
+            padding: 16,
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          <div style={{ fontWeight: 600, color: "#e2e8f0" }}>
+            ARIA — HR Assistant
+          </div>
+
+          {/* Knowledge Tags (non-clickable) */}
+          <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+            {["Onboarding", "Leave Policy", "Maternity"].map((d) => (
+              <div
+                key={d}
+                style={{
+                  fontSize: 11,
+                  padding: "3px 8px",
+                  borderRadius: 20,
+                  background: "rgba(16,185,129,0.08)",
+                  color: "#34d399",
+                  cursor: "default",
+                }}
+              >
+                {d}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CHAT */}
+        <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+          {messages.map((msg, i) => (
+            <Message key={i} msg={msg} />
+          ))}
+
+          {loading && (
+            <div style={{ marginBottom: 14 }}>
+              <TypingDots />
+            </div>
+          )}
+
+          <div ref={bottomRef} />
+        </div>
+
+        {/* QUICK QUESTIONS */}
+        {showQuick && (
+          <div style={{ padding: "0 16px 10px" }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#64748b",
+                marginBottom: 6,
+              }}
+            >
+              Quick questions
+            </div>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {QUICK_QUESTIONS.map((q, i) => (
+                <button
+                  key={i}
+                  onClick={() => sendMessage(q)}
+                  style={{
+                    padding: "6px 10px",
+                    fontSize: 12,
+                    borderRadius: 20,
+                    background: "rgba(6,182,212,0.08)",
+                    border: "1px solid rgba(6,182,212,0.2)",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                  }}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* INPUT */}
+        <div
+          style={{
+            padding: 12,
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              background: "rgba(255,255,255,0.04)",
+              borderRadius: 12,
+              padding: 8,
+            }}
+          >
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder="Ask something..."
+              style={{
+                flex: 1,
+                background: "transparent",
+                border: "none",
+                color: "#e2e8f0",
+              }}
+            />
+
+            <button
+              onClick={() => sendMessage()}
+              disabled={!input.trim() || loading}
+              style={{
+                padding: "6px 10px",
+                borderRadius: 8,
+                background: "#06b6d4",
+                border: "none",
+                color: "white",
+                cursor: "pointer",
+              }}
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
